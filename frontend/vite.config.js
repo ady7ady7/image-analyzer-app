@@ -55,9 +55,20 @@ export default defineConfig(({ command, mode }) => {
       
       // PERFORMANCE OPTIMIZED: Chunk splitting for better caching and loading strategy
       rollupOptions: {
+        external: isProduction ? [
+          // Externalize Firebase for now to fix build issues
+          'firebase/app',
+          'firebase/auth', 
+          'firebase/firestore'
+        ] : [],
         output: {
           // PRIORITY LOADING STRATEGY - Exactly as requested
           manualChunks: (id) => {
+            // Skip Firebase modules during build
+            if (id.includes('firebase')) {
+              return undefined; // Don't chunk Firebase, let it be external
+            }
+            
             // 1. REACT VENDOR CHUNK - Essential, loaded first
             if (id.includes('node_modules/react') || 
                 id.includes('node_modules/react-dom') ||
@@ -70,14 +81,7 @@ export default defineConfig(({ command, mode }) => {
               return 'animations';
             }
             
-            // 3. FIREBASE CHUNK - Loaded when needed
-            if (id.includes('node_modules/firebase') ||
-                id.includes('src/firebase/') ||
-                id.includes('src/components/AuthContext')) {
-              return 'firebase';
-            }
-            
-            // 4. UTILS CHUNK - Loaded when user interacts
+            // 3. UTILS CHUNK - Loaded when user interacts
             if (id.includes('node_modules/axios') ||
                 id.includes('node_modules/react-dropzone') ||
                 id.includes('node_modules/lucide-react') ||
@@ -87,18 +91,18 @@ export default defineConfig(({ command, mode }) => {
               return 'utils';
             }
             
-            // 5. VENDOR CHUNK - Other third-party libraries
+            // 4. VENDOR CHUNK - Other third-party libraries
             if (id.includes('node_modules')) {
               return 'vendor';
             }
             
-            // 6. COMPONENTS CHUNK - Your components (loaded on demand)
+            // 5. COMPONENTS CHUNK - Your components (loaded on demand)
             if (id.includes('src/components/') && 
                 !id.includes('src/components/AuthContext')) {
               return 'components';
             }
             
-            // 7. PAGES CHUNK - Your pages (loaded on route navigation)
+            // 6. PAGES CHUNK - Your pages (loaded on route navigation)
             if (id.includes('src/pages/')) {
               return 'pages';
             }
