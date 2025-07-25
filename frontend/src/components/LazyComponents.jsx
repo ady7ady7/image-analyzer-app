@@ -51,13 +51,11 @@ export const LazyUtilComponents = {
   DebugPanel: lazy(() => import('./DebugPanel').catch(() => ({ default: () => null }))), // Optional component
 };
 
-// PAGES CHUNK - Loaded on route navigation (YOUR ACTUAL PAGES)
+// PAGES CHUNK - Loaded on route navigation (YOUR ACTUAL PAGES ONLY)
 export const LazyPages = {
   Privacy: lazy(() => import('../pages/Privacy')),
   Terms: lazy(() => import('../pages/Terms')),
   NotFound: lazy(() => import('../pages/NotFound')),
-  // Add Dashboard when you create it
-  Dashboard: lazy(() => import('../pages/Dashboard').catch(() => ({ default: () => <div>Dashboard coming soon</div> }))),
 };
 
 // =============================================================================

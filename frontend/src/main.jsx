@@ -69,16 +69,6 @@ const AppRouter = () => {
           } 
         />
         
-        {/* DASHBOARD - Requires auth, loads Firebase chunk (when you create it) */}
-        <Route 
-          path="/dashboard" 
-          element={
-            <SuspensePages fallback={<PageLoader pageName="Dashboard" />}>
-              <LazyPages.Dashboard />
-            </SuspensePages>
-          } 
-        />
-        
         {/* 404 ERROR PAGE - Lazy loaded, must be last */}
         <Route 
           path="*" 
@@ -97,21 +87,23 @@ const AppRouter = () => {
  * AUTH PROVIDER WRAPPER - Lazy loads Firebase chunk when needed
  */
 const AppWithAuth = () => {
-  // Check if auth is needed (can be optimized based on route)
-  const needsAuth = window.location.pathname.includes('/dashboard') || 
-                   localStorage.getItem('user_token');
+  // For now, just load app without auth since dashboard doesn't exist yet
+  // When you add dashboard or other auth-required pages, uncomment below:
   
-  if (needsAuth) {
-    return (
-      <SuspenseFirebase fallback={<AuthLoader />}>
-        <LazyFirebaseComponents.AuthProvider>
-          <AppRouter />
-        </LazyFirebaseComponents.AuthProvider>
-      </SuspenseFirebase>
-    );
-  }
+  // const needsAuth = window.location.pathname.includes('/dashboard') || 
+  //                  localStorage.getItem('user_token');
   
-  // No auth needed, load app without Firebase chunk
+  // if (needsAuth) {
+  //   return (
+  //     <SuspenseFirebase fallback={<AuthLoader />}>
+  //       <LazyFirebaseComponents.AuthProvider>
+  //         <AppRouter />
+  //       </LazyFirebaseComponents.AuthProvider>
+  //     </SuspenseFirebase>
+  //   );
+  // }
+  
+  // No auth needed for current pages
   return <AppRouter />;
 };
 
