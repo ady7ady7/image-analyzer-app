@@ -137,18 +137,18 @@ const setupIntelligentPreloading = () => {
   document.addEventListener('touchstart', preloadUtils, { once: true });
   document.addEventListener('keydown', preloadUtils, { once: true });
   
-  // Preload Firebase on auth-related actions
-  const authButtons = document.querySelectorAll('[data-auth], [data-login], [data-signup]');
-  authButtons.forEach(button => {
-    button.addEventListener('mouseenter', () => {
-      import('./components/LazyComponents').then(({ preloadChunks }) => {
-        preloadChunks.firebase();
-      }).catch(() => {
-        // Fallback: preload Firebase directly
-        import('./firebase/firebase').catch(() => {});
-      });
-    }, { once: true });
-  });
+  // Preload Firebase on auth-related actions (temporarily disabled)
+  // const authButtons = document.querySelectorAll('[data-auth], [data-login], [data-signup]');
+  // authButtons.forEach(button => {
+  //   button.addEventListener('mouseenter', () => {
+  //     import('./components/LazyComponents').then(({ preloadChunks }) => {
+  //       preloadChunks.firebase();
+  //     }).catch(() => {
+  //       // Fallback: preload Firebase directly
+  //       import('./firebase/firebase').catch(() => {});
+  //     });
+  //   }, { once: true });
+  // });
 };
 
 // =============================================================================

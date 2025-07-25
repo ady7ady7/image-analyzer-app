@@ -152,7 +152,10 @@ export default defineConfig(({ command, mode }) => {
       // Exclude heavy dependencies to be code-split
       exclude: [
         'framer-motion',      // Will be in animations chunk
-        'firebase',           // Will be in firebase chunk
+        'firebase',           // Will be in firebase chunk - EXCLUDE FROM BUILD
+        'firebase/app',       // Exclude Firebase modules
+        'firebase/auth',
+        'firebase/firestore',
         'axios',              // Will be in utils chunk
         'react-dropzone',     // Will be in utils chunk
         'lucide-react'        // Will be in utils chunk
