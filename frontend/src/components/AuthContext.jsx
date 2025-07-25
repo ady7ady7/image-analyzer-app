@@ -12,23 +12,15 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState({
+    uid: 'offline-user',
+    isAnonymous: true,
+    getIdToken: () => Promise.resolve('offline-token')
+  });
+  const [loading, setLoading] = useState(false); // Changed to false - no loading delay
   const [error, setError] = useState(null);
 
-  // Simulate loading and set up offline user
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCurrentUser({
-        uid: 'offline-user',
-        isAnonymous: true,
-        getIdToken: () => Promise.resolve('offline-token')
-      });
-      setLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  // No useEffect delay - user is available immediately
 
   // Mock functions to match your existing API
   const updateUsageCount = async () => {
@@ -66,15 +58,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
-      {loading && (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-purple-900 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-white text-lg">Initializing Application...</p>
-          </div>
-        </div>
-      )}
+      {children}
     </AuthContext.Provider>
   );
 };
