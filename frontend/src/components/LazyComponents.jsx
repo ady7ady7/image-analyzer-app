@@ -1,8 +1,7 @@
 // frontend/src/components/LazyComponents.jsx
-// PERFORMANCE: Lazy loading setup for code-split chunks
+// PERFORMANCE: Lazy loading setup for code-split chunks - FIXED FOR YOUR ACTUAL COMPONENTS
 
 import { lazy, Suspense } from 'react';
-import { motion } from 'framer-motion';
 
 // =============================================================================
 // LOADING COMPONENTS
@@ -13,19 +12,10 @@ import { motion } from 'framer-motion';
  */
 const LoadingSpinner = ({ message = "Loading..." }) => (
   <div className="flex flex-col items-center justify-center min-h-[200px] space-y-4">
-    <motion.div
-      className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full"
-      animate={{ rotate: 360 }}
-      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-    />
-    <motion.p 
-      className="text-gray-400 text-sm"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.5 }}
-    >
+    <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+    <p className="text-gray-400 text-sm animate-fade-in" style={{ animationDelay: '0.5s', opacity: 0 }}>
       {message}
-    </motion.p>
+    </p>
   </div>
 );
 
@@ -41,65 +31,38 @@ const ChunkLoader = ({ chunkName, className = "" }) => (
 );
 
 // =============================================================================
-// LAZY LOADED COMPONENTS - MATCHING YOUR CHUNKS
+// LAZY LOADED COMPONENTS - MATCHING YOUR ACTUAL PROJECT STRUCTURE
 // =============================================================================
 
-// ANIMATIONS CHUNK - Loaded after initial render
-export const LazyAnimatedComponents = {
-  // Heavy animation components that use framer-motion extensively
-  ParallaxBackground: lazy(() => 
-    import('./animations/ParallaxBackground').catch(() => 
-      import('./fallbacks/StaticBackground')
-    )
-  ),
-  AnimatedTestimonials: lazy(() => 
-    import('./animations/AnimatedTestimonials').catch(() => 
-      import('./fallbacks/StaticTestimonials')
-    )
-  ),
-  FloatingElements: lazy(() => 
-    import('./animations/FloatingElements').catch(() => 
-      import('./fallbacks/StaticElements')
-    )
-  )
-};
-
-// FIREBASE CHUNK - Loaded when authentication is needed
+// FIREBASE CHUNK - Loaded when authentication is needed  
 export const LazyFirebaseComponents = {
   AuthProvider: lazy(() => import('./AuthContext')),
-  LoginModal: lazy(() => import('./auth/LoginModal')),
-  UserProfile: lazy(() => import('./auth/UserProfile')),
-  ProtectedRoute: lazy(() => import('./auth/ProtectedRoute'))
+  // Add other auth components when you create them
 };
 
-// UTILS CHUNK - Loaded when user interacts
+// UTILS CHUNK - Loaded when user interacts (YOUR ACTUAL COMPONENTS)
 export const LazyUtilComponents = {
   ImageUploader: lazy(() => import('./ImageUploader')),
   AnalysisForm: lazy(() => import('./AnalysisForm')),
-  ResultsDisplay: lazy(() => import('./ResultsDisplay')),
-  DebugPanel: lazy(() => import('./DebugPanel'))
+  GoalSelection: lazy(() => import('./GoalSelection')),
+  EngineSelection: lazy(() => import('./EngineSelection')),
+  CustomPromptInput: lazy(() => import('./CustomPromptInput')),
+  FinalOutput: lazy(() => import('./FinalOutput')),
+  DebugPanel: lazy(() => import('./DebugPanel').catch(() => ({ default: () => null }))), // Optional component
 };
 
-// PAGES CHUNK - Loaded on route navigation
+// PAGES CHUNK - Loaded on route navigation (YOUR ACTUAL PAGES)
 export const LazyPages = {
   Privacy: lazy(() => import('../pages/Privacy')),
   Terms: lazy(() => import('../pages/Terms')),
   NotFound: lazy(() => import('../pages/NotFound')),
-  Dashboard: lazy(() => import('../pages/Dashboard'))
+  // Add Dashboard when you create it
+  Dashboard: lazy(() => import('../pages/Dashboard').catch(() => ({ default: () => <div>Dashboard coming soon</div> }))),
 };
 
 // =============================================================================
 // WRAPPER COMPONENTS WITH SUSPENSE
 // =============================================================================
-
-/**
- * Suspense wrapper for animations chunk
- */
-export const SuspenseAnimations = ({ children, fallback }) => (
-  <Suspense fallback={fallback || <ChunkLoader chunkName="animations" />}>
-    {children}
-  </Suspense>
-);
 
 /**
  * Suspense wrapper for Firebase chunk  
@@ -137,18 +100,10 @@ export const SuspensePages = ({ children, fallback }) => (
  * Call this on hover/focus to preload chunks before they're needed
  */
 export const preloadChunks = {
-  animations: () => {
-    // Preload framer-motion chunk
-    import('framer-motion');
-    Object.values(LazyAnimatedComponents).forEach(component => {
-      component.preload?.();
-    });
-  },
-  
   firebase: () => {
     // Preload firebase chunk
-    import('firebase/app');
-    import('firebase/auth');
+    import('firebase/app').catch(() => {});
+    import('firebase/auth').catch(() => {});
     Object.values(LazyFirebaseComponents).forEach(component => {
       component.preload?.();
     });
@@ -156,9 +111,9 @@ export const preloadChunks = {
   
   utils: () => {
     // Preload utils chunk
-    import('axios');
-    import('react-dropzone');
-    import('lucide-react');
+    import('axios').catch(() => {});
+    import('react-dropzone').catch(() => {});
+    import('lucide-react').catch(() => {});
     Object.values(LazyUtilComponents).forEach(component => {
       component.preload?.();
     });
@@ -188,11 +143,9 @@ export const useIntelligentPreloading = () => {
 export default {
   LoadingSpinner,
   ChunkLoader,
-  LazyAnimatedComponents,
   LazyFirebaseComponents,
   LazyUtilComponents,
   LazyPages,
-  SuspenseAnimations,
   SuspenseFirebase,
   SuspenseUtils,
   SuspensePages,

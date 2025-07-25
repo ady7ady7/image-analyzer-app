@@ -1,11 +1,11 @@
-// frontend/src/main.jsx - OPTIMIZED WITH PERFORMANCE CODE SPLITTING
+// frontend/src/main.jsx - FIXED FOR YOUR ACTUAL PROJECT STRUCTURE
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import App from './App.jsx';
 import './index.css';
 
-// PERFORMANCE: Import lazy loading utilities
+// PERFORMANCE: Import lazy loading utilities - ONLY for components that exist
 import { 
   LazyPages, 
   LazyFirebaseComponents,
@@ -18,15 +18,9 @@ import {
  * 
  * PERFORMANCE STRATEGY:
  * 1. React vendor chunk loads first (essential)
- * 2. Animations chunk loads after initial render
- * 3. Firebase chunk loads when authentication needed
- * 4. Utils chunk loads when user interacts
- * 
- * Features:
- * - Code-split route components
- * - Lazy-loaded authentication
- * - Intelligent preloading
- * - Fallback loading states
+ * 2. Firebase chunk loads when authentication needed
+ * 3. Utils chunk loads when user interacts
+ * 4. Pages chunk loads on navigation
  */
 
 // Simple loading fallback for critical pages
@@ -75,7 +69,7 @@ const AppRouter = () => {
           } 
         />
         
-        {/* DASHBOARD - Requires auth, loads Firebase chunk */}
+        {/* DASHBOARD - Requires auth, loads Firebase chunk (when you create it) */}
         <Route 
           path="/dashboard" 
           element={
@@ -129,18 +123,18 @@ const AppWithAuth = () => {
  * Preload chunks based on user behavior
  */
 const setupIntelligentPreloading = () => {
-  // Preload animations chunk after initial render
-  setTimeout(() => {
-    import('./components/LazyComponents').then(({ preloadChunks }) => {
-      preloadChunks.animations();
-    });
-  }, 1000);
-  
   // Preload utils on any user interaction
   const preloadUtils = () => {
     import('./components/LazyComponents').then(({ preloadChunks }) => {
       preloadChunks.utils();
+    }).catch(() => {
+      // Fallback: preload individual utils manually
+      import('./components/ImageUploader').catch(() => {});
+      import('./components/AnalysisForm').catch(() => {});
+      import('axios').catch(() => {});
+      import('react-dropzone').catch(() => {});
     });
+    
     // Remove listeners after first interaction
     document.removeEventListener('click', preloadUtils);
     document.removeEventListener('touchstart', preloadUtils);
@@ -157,7 +151,7 @@ const setupIntelligentPreloading = () => {
     button.addEventListener('mouseenter', () => {
       import('./components/LazyComponents').then(({ preloadChunks }) => {
         preloadChunks.firebase();
-      });
+      }).catch(() => {});
     }, { once: true });
   });
 };
@@ -185,16 +179,6 @@ root.render(
 // =============================================================================
 
 if (import.meta.env.DEV) {
-  // Monitor chunk loading performance
-  const originalLog = console.log;
-  console.log = (...args) => {
-    if (args[0]?.includes?.('chunk')) {
-      originalLog('🚀 Chunk loaded:', ...args);
-    } else {
-      originalLog(...args);
-    }
-  };
-  
   // Log initial load time
   window.addEventListener('load', () => {
     const loadTime = performance.now();
