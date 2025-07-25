@@ -1,29 +1,25 @@
-// frontend/src/main.jsx - FIXED FOR YOUR ACTUAL PROJECT STRUCTURE
+// frontend/src/main.jsx - SIMPLIFIED FOR WORKING BUILD
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import App from './App.jsx';
 import './index.css';
 
+// Import AuthProvider directly
+import { AuthProvider } from './components/AuthContext';
+
 // PERFORMANCE: Import lazy loading utilities - ONLY for components that exist
 import { 
   LazyPages, 
-  LazyFirebaseComponents,
-  SuspensePages, 
-  SuspenseFirebase 
+  SuspensePages
 } from './components/LazyComponents';
 
 /**
- * OPTIMIZED Main Application Router Setup
- * 
- * PERFORMANCE STRATEGY:
- * 1. React vendor chunk loads first (essential)
- * 2. Firebase chunk loads when authentication needed
- * 3. Utils chunk loads when user interacts
- * 4. Pages chunk loads on navigation
+ * SIMPLIFIED Main Application Router Setup
+ * Focus on getting the basic app working first
  */
 
-// Simple loading fallback for critical pages
+// Simple loading fallback for pages
 const PageLoader = ({ pageName }) => (
   <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
     <div className="glass-effect p-8 rounded-xl text-center">
@@ -33,24 +29,14 @@ const PageLoader = ({ pageName }) => (
   </div>
 );
 
-// Minimal auth loading fallback
-const AuthLoader = () => (
-  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-    <div className="glass-effect p-6 rounded-xl">
-      <div className="w-6 h-6 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-      <p className="text-gray-300 text-sm">Loading authentication...</p>
-    </div>
-  </div>
-);
-
 const AppRouter = () => {
   return (
     <Router>
       <Routes>
-        {/* MAIN APPLICATION ROUTE - Loads immediately with React vendor chunk */}
+        {/* MAIN APPLICATION ROUTE - Loads immediately */}
         <Route path="/" element={<App />} />
         
-        {/* LAZY-LOADED LEGAL PAGES - Loaded on navigation */}
+        {/* LAZY-LOADED LEGAL PAGES */}
         <Route 
           path="/privacy" 
           element={
@@ -69,7 +55,7 @@ const AppRouter = () => {
           } 
         />
         
-        {/* 404 ERROR PAGE - Lazy loaded, must be last */}
+        {/* 404 ERROR PAGE - Must be last */}
         <Route 
           path="*" 
           element={
@@ -83,42 +69,15 @@ const AppRouter = () => {
   );
 };
 
-/**
- * AUTH PROVIDER WRAPPER - Lazy loads Firebase chunk when needed
- */
-const AppWithAuth = () => {
-  // For now, just load app without auth since dashboard doesn't exist yet
-  // When you add dashboard or other auth-required pages, uncomment below:
-  
-  // const needsAuth = window.location.pathname.includes('/dashboard') || 
-  //                  localStorage.getItem('user_token');
-  
-  // if (needsAuth) {
-  //   return (
-  //     <SuspenseFirebase fallback={<AuthLoader />}>
-  //       <LazyFirebaseComponents.AuthProvider>
-  //         <AppRouter />
-  //       </LazyFirebaseComponents.AuthProvider>
-  //     </SuspenseFirebase>
-  //   );
-  // }
-  
-  // No auth needed for current pages
-  return <AppRouter />;
-};
-
 // =============================================================================
-// PERFORMANCE: INTELLIGENT PRELOADING
+// PERFORMANCE: SIMPLIFIED PRELOADING
 // =============================================================================
 
-/**
- * Preload chunks based on user behavior
- */
 const setupIntelligentPreloading = () => {
-  // Preload utils on any user interaction
+  // Preload utils on first user interaction
   const preloadUtils = () => {
     import('./components/LazyComponents').then(({ preloadChunks }) => {
-      preloadChunks.utils();
+      preloadChunks?.utils?.();
     }).catch(() => {
       // Fallback: preload individual utils manually
       import('./components/ImageUploader').catch(() => {});
@@ -136,45 +95,49 @@ const setupIntelligentPreloading = () => {
   document.addEventListener('click', preloadUtils, { once: true });
   document.addEventListener('touchstart', preloadUtils, { once: true });
   document.addEventListener('keydown', preloadUtils, { once: true });
-  
-  // Preload Firebase on auth-related actions (temporarily disabled)
-  // const authButtons = document.querySelectorAll('[data-auth], [data-login], [data-signup]');
-  // authButtons.forEach(button => {
-  //   button.addEventListener('mouseenter', () => {
-  //     import('./components/LazyComponents').then(({ preloadChunks }) => {
-  //       preloadChunks.firebase();
-  //     }).catch(() => {
-  //       // Fallback: preload Firebase directly
-  //       import('./firebase/firebase').catch(() => {});
-  //     });
-  //   }, { once: true });
-  // });
 };
 
 // =============================================================================
 // APPLICATION INITIALIZATION
 // =============================================================================
 
-// Wait for DOM to be ready
-document.addEventListener('DOMContentLoaded', () => {
+// Simple initialization
+const initializeApp = () => {
+  const rootElement = document.getElementById('root');
+  
+  if (!rootElement) {
+    console.error('Root element not found!');
+    return;
+  }
+
+  const root = createRoot(rootElement);
+
+  root.render(
+    <StrictMode>
+      <AuthProvider>
+        <AppRouter />
+      </AuthProvider>
+    </StrictMode>
+  );
+
+  // Setup preloading after render
   setupIntelligentPreloading();
-});
+  
+  console.log('🚀 App initialized successfully');
+};
 
-// PERFORMANCE: Start React render
-const root = createRoot(document.getElementById('root'));
-
-root.render(
-  <StrictMode>
-    <AppWithAuth />
-  </StrictMode>
-);
+// Wait for DOM or initialize immediately
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  initializeApp();
+}
 
 // =============================================================================
 // PERFORMANCE MONITORING (Development only)
 // =============================================================================
 
 if (import.meta.env.DEV) {
-  // Log initial load time
   window.addEventListener('load', () => {
     const loadTime = performance.now();
     console.log(`🎯 Initial load completed in ${loadTime.toFixed(2)}ms`);
