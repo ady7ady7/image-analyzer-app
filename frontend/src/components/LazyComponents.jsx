@@ -99,9 +99,8 @@ export const SuspensePages = ({ children, fallback }) => (
  */
 export const preloadChunks = {
   firebase: () => {
-    // Preload firebase chunk
-    import('firebase/app').catch(() => {});
-    import('firebase/auth').catch(() => {});
+    // Preload firebase chunk - import your actual firebase setup
+    import('../firebase/firebase').catch(() => {});
     Object.values(LazyFirebaseComponents).forEach(component => {
       component.preload?.();
     });

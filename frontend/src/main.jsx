@@ -143,7 +143,10 @@ const setupIntelligentPreloading = () => {
     button.addEventListener('mouseenter', () => {
       import('./components/LazyComponents').then(({ preloadChunks }) => {
         preloadChunks.firebase();
-      }).catch(() => {});
+      }).catch(() => {
+        // Fallback: preload Firebase directly
+        import('./firebase/firebase').catch(() => {});
+      });
     }, { once: true });
   });
 };
