@@ -1,3 +1,4 @@
+// frontend/src/App.jsx - YOUR ORIGINAL CODE WITH ONLY PERFORMANCE OPTIMIZATIONS ADDED
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { 
@@ -20,7 +21,6 @@ import AnalysisForm from './components/AnalysisForm';
 import Navigation from './components/Navigation';
 import { useAuth } from './components/AuthContext';
 
-
 /**
  * Main Application Component - Prompt Sherlock
  * 
@@ -30,6 +30,8 @@ import { useAuth } from './components/AuthContext';
  * - Responsive layout
  * - AI-powered prompt generation branding
  * - Infinite draggable carousel with belt indicator
+ * 
+ * PERFORMANCE: Added intelligent preloading for code-split chunks
  */
 function App() {
   // =============================================================================
@@ -45,7 +47,35 @@ function App() {
   const autoScrollRef = useRef(null);
   const { currentUser, loading } = useAuth();
 
+  // =============================================================================
+  // PERFORMANCE: INTELLIGENT PRELOADING
+  // =============================================================================
   
+  useEffect(() => {
+    // Preload utils chunk on any user interaction
+    const preloadUtils = () => {
+      import('./components/LazyComponents').then(({ preloadChunks }) => {
+        preloadChunks?.utils?.();
+      }).catch(() => {
+        // Fallback: preload individual utils
+        import('axios');
+        import('react-dropzone');
+        import('lucide-react');
+      });
+    };
+    
+    // Listen for first user interaction
+    const events = ['click', 'touchstart', 'keydown', 'scroll'];
+    events.forEach(event => {
+      document.addEventListener(event, preloadUtils, { once: true });
+    });
+    
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, preloadUtils);
+      });
+    };
+  }, []);
 
   // =============================================================================
   // EVENT HANDLERS
@@ -534,7 +564,6 @@ function App() {
 
         {/* Navigation Links */}
         <Navigation />
-
 
         {/* Copyright */}
         <div className="text-center py-6 border-t border-white/5 mt-8">

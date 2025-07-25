@@ -1,3 +1,4 @@
+// frontend/vite.config.js - OPTIMIZED WITH PERFORMANCE CODE SPLITTING
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
@@ -46,23 +47,64 @@ export default defineConfig(({ command, mode }) => {
       cors: true
     },
     
-    // Build configuration
+    // Build configuration with OPTIMIZED CODE SPLITTING
     build: {
       outDir: 'dist',
       sourcemap: isDevelopment,
       minify: isProduction ? 'terser' : false,
       
-      // Chunk splitting for better caching
+      // PERFORMANCE OPTIMIZED: Chunk splitting for better caching and loading strategy
       rollupOptions: {
         output: {
-          manualChunks: {
-            // Vendor chunks
-            vendor: ['react', 'react-dom'],
-            animations: ['framer-motion'],
-            ui: ['lucide-react', '@headlessui/react'],
-            utils: ['axios', 'react-dropzone'],
+          // PRIORITY LOADING STRATEGY - Exactly as requested
+          manualChunks: (id) => {
+            // 1. REACT VENDOR CHUNK - Essential, loaded first
+            if (id.includes('node_modules/react') || 
+                id.includes('node_modules/react-dom') ||
+                id.includes('node_modules/react-router-dom')) {
+              return 'react-vendor';
+            }
+            
+            // 2. ANIMATIONS CHUNK - Loaded after initial render
+            if (id.includes('node_modules/framer-motion')) {
+              return 'animations';
+            }
+            
+            // 3. FIREBASE CHUNK - Loaded when needed
+            if (id.includes('node_modules/firebase') ||
+                id.includes('src/firebase/') ||
+                id.includes('src/components/AuthContext')) {
+              return 'firebase';
+            }
+            
+            // 4. UTILS CHUNK - Loaded when user interacts
+            if (id.includes('node_modules/axios') ||
+                id.includes('node_modules/react-dropzone') ||
+                id.includes('node_modules/lucide-react') ||
+                id.includes('node_modules/@headlessui/react') ||
+                id.includes('node_modules/prop-types') ||
+                id.includes('src/utils/')) {
+              return 'utils';
+            }
+            
+            // 5. VENDOR CHUNK - Other third-party libraries
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+            
+            // 6. COMPONENTS CHUNK - Your components (loaded on demand)
+            if (id.includes('src/components/') && 
+                !id.includes('src/components/AuthContext')) {
+              return 'components';
+            }
+            
+            // 7. PAGES CHUNK - Your pages (loaded on route navigation)
+            if (id.includes('src/pages/')) {
+              return 'pages';
+            }
           },
-          // Asset file naming
+          
+          // Asset file naming with performance optimization
           assetFileNames: (assetInfo) => {
             const info = assetInfo.name.split('.')
             const ext = info[info.length - 1]
@@ -89,7 +131,7 @@ export default defineConfig(({ command, mode }) => {
         mangle: true
       } : {},
       
-      // Size warning limit
+      // Size warning limit (increased for chunked builds)
       chunkSizeWarningLimit: 1000,
       
       // Target modern browsers
@@ -99,19 +141,22 @@ export default defineConfig(({ command, mode }) => {
       cssCodeSplit: true
     },
     
-    // Dependency optimization
+    // PERFORMANCE: Dependency optimization for faster dev builds
     optimizeDeps: {
       include: [
+        // Pre-bundle essential dependencies for faster cold starts
         'react',
         'react-dom',
-        'framer-motion',
-        'lucide-react',
-        'axios',
-        'react-dropzone',
-        '@headlessui/react'
+        'react-router-dom'
       ],
-      // Exclude problematic dependencies
-      exclude: []
+      // Exclude heavy dependencies to be code-split
+      exclude: [
+        'framer-motion',      // Will be in animations chunk
+        'firebase',           // Will be in firebase chunk
+        'axios',              // Will be in utils chunk
+        'react-dropzone',     // Will be in utils chunk
+        'lucide-react'        // Will be in utils chunk
+      ]
     },
     
     // Path resolution
@@ -122,7 +167,8 @@ export default defineConfig(({ command, mode }) => {
         '@pages': resolve(__dirname, 'src/pages'),
         '@utils': resolve(__dirname, 'src/utils'),
         '@hooks': resolve(__dirname, 'src/hooks'),
-        '@assets': resolve(__dirname, 'src/assets')
+        '@assets': resolve(__dirname, 'src/assets'),
+        '@firebase': resolve(__dirname, 'src/firebase')
       }
     },
     
@@ -142,10 +188,12 @@ export default defineConfig(({ command, mode }) => {
     // Base URL for deployment
     base: env.VITE_BASE_URL || '/',
     
-    // ESBuild configuration
+    // ESBuild configuration for performance
     esbuild: {
       target: 'esnext',
-      drop: isProduction ? ['console', 'debugger'] : []
+      drop: isProduction ? ['console', 'debugger'] : [],
+      // Tree shaking optimization
+      treeShaking: true
     }
   }
 })
